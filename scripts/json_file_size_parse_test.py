@@ -1,15 +1,33 @@
 import json
+import os
 import time
-
+from dotenv import load_dotenv
 import requests
 
 
 SUBWAY_ALERTS_URL = "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/camsys%2Fsubway-alerts.json"
 BUS_ALERTS_URL = "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/camsys%2Fbus-alerts.json"
+BUS_POSITION_URL = "https://bustime.mta.info/api/siri/vehicle-monitoring.json"
 
+load_dotenv()
+
+BUS_POSITION_KEY = os.getenv("BUSTIME_API_KEY")
+print(BUS_POSITION_KEY)
 
 def fetch_mta_alerts(url, label):
-    response = requests.get(url)
+    if url == BUS_POSITION_URL:
+        params = {
+            "key": BUS_POSITION_KEY,
+            "version": "2",
+            "LineRef": "Q60",
+        }
+    #TASK: need to determine directionref parameter for both Q60 and Q18
+        print(params["key"])
+    else:
+        params = {}
+    
+    response = requests.get(url, params = params)
+    
     response.raise_for_status()
 
     file_size = len(response.content)
@@ -37,3 +55,7 @@ if __name__ == "__main__":
         print(f"Bus alerts top-level keys: {list(bus_alerts.keys())}")
     else:
         print(f"Bus alerts parsed JSON type: {type(bus_alerts).__name__}")
+
+    print()
+    
+    bus_positions = fetch_mta_alerts(BUS_POSITION_URL, "Bus positions")
